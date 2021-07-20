@@ -28,11 +28,10 @@ class LinearSensor:
         return self.noise() + next(self.gen), self.R
 
 class ProcessingNodeSensor:
-    def __init__(self, sensor: LinearSensor, sensor_models: List[SensorModel]):
+    def __init__(self, sensor: LinearSensor):
         self.sensor = sensor
-        self.models = sensor_models
         self.measurement = np.zeros((1, 2))
-        self.kalman = KalmanFilter(sensor.model.H)
+        self.filter = KalmanFilter(sensor.model.H)
 
     def process(self, t):
         # Take a sensor measurement
@@ -40,7 +39,7 @@ class ProcessingNodeSensor:
         # Store unfused measurement for presentation
         self.measurement = np.array(z)
         # Do local filtering on the sensor measurement
-        x, P = self.kalman.filter(t, z, R)
+        x, P = self.filter(t, z, R)
 
         # Return the filtered state and covariance
         return x, P

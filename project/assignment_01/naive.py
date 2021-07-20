@@ -1,20 +1,22 @@
+from project.sensor import LinearSensor
 from typing import List
 
 import numpy as np
 from numpy.linalg import pinv as inv
-from project import CentralProcessingNode, ProcessingNodeSensor
+from project import CentralProcessingNode, LinearSensor, ProcessingNodeSensor
 
 
 class NaiveFusion(CentralProcessingNode):
-    def __init__(self, sensors: List[ProcessingNodeSensor]):
+    def __init__(self, sensors: List[LinearSensor]):
         super().__init__(sensors)
+        self.nodes = [ProcessingNodeSensor(sensor) for sensor in sensors]
 
     def process(self, t):
         x = np.zeros((4, 1))
         P = np.zeros((4, 4))
 
         # Take measurements from each sensor
-        outputs = [s.process(t) for s in self.sensors]
+        outputs = [s.process(t) for s in self.nodes]
         self.measurements = [o[0][:2].flatten() for o in outputs]
 
         # Perform convex combination

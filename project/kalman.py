@@ -17,7 +17,7 @@ class KalmanFilter:
                          [0, 0, 1, 0],
                          [0, 0, 0, 1]])
 
-    def D(self, delta):
+    def Q(self, delta):
         delta4 = delta ** 4 / 4
         delta3 = delta ** 3 / 2
         delta2 = delta ** 2
@@ -40,7 +40,7 @@ class KalmanFilter:
         H = self.H
         # Predict location
         estimated_state = F @ self.state
-        estimate_covariance = F @ self.covariance @ F.T + self.D(delta)
+        estimate_covariance = F @ self.covariance @ F.T + self.Q(delta)
         # Calculate innovation from measurement
         innovation = measurement - H @ estimated_state
         innovation_error = H @ estimate_covariance @ H.T + R
@@ -49,13 +49,16 @@ class KalmanFilter:
         self.state = estimated_state + gain @ innovation
         self.covariance = estimate_covariance - gain @ innovation_error @ gain.T
         self.time = time
-        return self.state / delta if delta > 0 else self.state, self.covariance
+        return self.state, self.covariance
+
+    def __call__(self, time, measurement, R):
+        return self.filter(time, measurement, R)
 
     def predict(self, time):
-        H = self.H
         delta = time - self.time
         if delta == 0:
-            return H @ self.state
+            return self.state, self.covariance
         F = self.F(delta)
-        state = H @ F @ self.state
-        return state / delta if delta > 0 else state
+        state = F @ self.state
+        covariance = F @ self.covariance @ F.T + self.Q(delta)
+        return state, covariance

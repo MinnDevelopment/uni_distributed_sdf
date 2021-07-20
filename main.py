@@ -23,27 +23,26 @@ def cross_loop(v=25, r=1000):
 methods = {
     # Convex combination / Least-Squares / Naive Fusion
     'naive': project.assignment_01.NaiveFusion,
-    # 'tracklet': project.assignment_02.TrackletFusion,
+    'tracklet': project.assignment_02.TrackletFusion,
     # 'federated': project.assignment_02.FederatedFusion,
     # 'distributed': project.assignment_02.DistributedFusion
 }
 
-method = 'naive'
+# Define our simulation parameters
 
-S = 10 # The number of sensors
-T = 495 # The number of timesteps (seconds)
+T = 495 # Number of steps
+S = 10 # Number of sensors
+sigma = 500 # Sensor covariance factor
 
-sigma = 5000 # The simulated error covariance value for the sensors
-
-H = np.block([np.eye(2), np.zeros((2, 2))]) # The sensor model
-
-def simulate(method, S=10, sigma=5000, T=495):
+def simulate(method):
     # Generate S many linear sensors with the same covariance
     sensors = [project.LinearSensor(cross_loop(), sigma) for s in range(S)]
-    # Create a processing node for local and distributed fusion
-    nodes = [project.ProcessingNodeSensor(sensor, [sensor.model]) for sensor in sensors]
     # Initialize the fusion center with the sensor nodes
-    fusion = methods[method](nodes)
+    fusion = methods[method](sensors)
+    # Retrieve processing nodes from the fusion center
+    nodes = fusion.nodes
+    # The sensor model, used to extract the estimated position
+    H = np.block([np.eye(2), np.zeros((2, 2))])
 
     errors = []
     ground_truth = []
@@ -59,8 +58,6 @@ def simulate(method, S=10, sigma=5000, T=495):
         # This does the measurements from each sensor and fuses them with the respective method
         x, P = fusion.process(t)
 
-        std.append(np.sqrt(np.trace(inv(P))))
-
         # Store measurements for presentation
 
         if show_filtered_measurements:
@@ -74,21 +71,24 @@ def simulate(method, S=10, sigma=5000, T=495):
 
         # Use the sensor model to get the predicted position after fusion
         x = (H @ x).flatten()
-        print("Step", t)
-        print("Truth:", gt)
-        print("Predicted:", x)
-        print("Covariance:", P) # You can observe this converges to a fixed covariance matrix over time
         error = np.sqrt(np.mean((x - np.array(gt))**2)) # RMSE
         errors.append(error)
         ground_truth.append(gt)
         predicted.append(x)
-        print("Error:", error)
-        print("=======")
+        std.append(np.sqrt(np.trace(inv(P))))
+        if __debug__: # This means you can disable logs with `python3 -O <file>`
+            print("Step", t)
+            print("Truth:", gt)
+            print("Predicted:", x)
+            print("Covariance:", P) # You can observe this converges to a fixed covariance matrix over time
+            print("Error:", error)
+            print("=======")
     
     return errors, measurements, ground_truth, predicted, std
 
+method = 'tracklet'
 
-errors, measurements, ground_truth, predicted, std = simulate('naive')
+errors, measurements, ground_truth, predicted, std = simulate(method)
 
 # Plot the results for this trajectory simulation
 
