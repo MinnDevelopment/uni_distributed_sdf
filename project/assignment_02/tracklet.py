@@ -1,26 +1,23 @@
+from project.kalman import KalmanFilter
 from numpy.lib.function_base import cov
 from project.information import InformationFilter
 from project import ProcessingNodeSensor, CentralProcessingNode
 import numpy as np
 from numpy.linalg import pinv as inv
 
-class TrackletSensorUnit(ProcessingNodeSensor):
-    def __init__(self, sensor):
-        super().__init__(sensor)
-    
-    # Used to gain the prior by applying the transition model to the posterior
-    def F(self, delta):
-        return self.filter.F(delta)
-    
-    def Q(self, delta):
-        return self.filter.Q(delta)
 
 class TrackletFusion(CentralProcessingNode):
     def __init__(self, sensors):
         super().__init__(sensors)
-        self.nodes = [TrackletSensorUnit(sensor) for sensor in sensors]
+        self.nodes = [ProcessingNodeSensor(sensor) for sensor in sensors]
         self.previous = [(node.filter.state, node.filter.covariance) for node in self.nodes] # Used to get prior
         self.filter = InformationFilter()
+    
+    def F(self, delta):
+        return KalmanFilter(np.eye(1)).F(delta)
+
+    def Q(self, delta):
+        return KalmanFilter(np.eye(1)).Q(delta)
     
     def tostate(self, y, Y):
         # Convert from information space to state space
@@ -35,7 +32,7 @@ class TrackletFusion(CentralProcessingNode):
         posterior = []
         for node, previous in zip(self.nodes, self.previous):
             delta = t - node.filter.time
-            F, Q = node.F(delta), node.Q(delta)
+            F, Q = self.F(delta), self.Q(delta)
 
             # Receive posterior for current time step
             post_x, post_P = node.process(t)
