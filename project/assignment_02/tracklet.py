@@ -8,16 +8,24 @@ class TrackletSensorUnit(ProcessingNodeSensor):
     def __init__(self, sensor):
         super().__init__(sensor)
 
-    def process(self, t): # t is unused since we don't do local filtering
-        z, R = self.sensor.measure(t)
-        # Store measurement for presentation
-        self.measurement = np.array(z)
-        # Convert measurement to information space
-        H = self.sensor.H
-        R = inv(self.sensor.R)
-        I = H.T @ R @ H
-        i = H.T @ R @ z
+    def process(self, t):
+        prior_x, prior_P = self.filter.predict(t)
+        post_x, post_P = ProcessingNodeSensor.process(self, t)
+
+        prior_P, post_P = inv(prior_P), inv(post_P)
+        I = post_P - prior_P
+        i = post_P @ post_x - prior_P @ prior_x
         return i, I
+
+        # z, R = self.sensor.measure(t)
+        # # Store measurement for presentation
+        # self.measurement = np.array(z)
+        # # Convert measurement to information space
+        # H = self.sensor.H
+        # R = inv(self.sensor.R)
+        # I = H.T @ R @ H
+        # i = H.T @ R @ z
+        # return i, I
 
 class TrackletFusion(CentralProcessingNode):
     def __init__(self, sensors):

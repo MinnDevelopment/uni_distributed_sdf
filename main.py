@@ -19,12 +19,25 @@ def cross_loop(v=25, r=1000):
             return x, y
     return wrapper
 
+    
+# Simulation framework is simply a generator which gives cartesian ground truth positions in second intervals
+def sine(v=25, r=1000):
+    """
+    We fly an infinity shaped track with the cross being the start position
+    """
+    def wrapper(t):
+        a = v/r
+        while True:
+            y = r * sin(t * a)
+            return t, y
+    return wrapper
+
 # The 4 fusion methods we should implement
 methods = {
     # Convex combination / Least-Squares / Naive Fusion
     'naive': project.assignment_01.NaiveFusion,
     'tracklet': project.assignment_02.TrackletFusion,
-    # 'federated': project.assignment_02.FederatedFusion,
+    'federated': project.assignment_02.FederatedFusion,
     # 'distributed': project.assignment_02.DistributedFusion
 }
 
@@ -32,8 +45,9 @@ methods = {
 
 T = 495 # Number of steps
 stepsize = 1
-S = 2 # Number of sensors
-sigma = 500 # Sensor covariance factor
+S = 4 # Number of sensors
+sigma = 100 # Sensor covariance factor
+track = sine()
 
 print("Simulation Parameters")
 print("Steps", T)
@@ -44,7 +58,7 @@ print("====================================")
 
 def simulate(method):
     # Generate S many linear sensors with the same covariance
-    sensors = [project.LinearSensor(cross_loop(), sigma) for s in range(S)]
+    sensors = [project.LinearSensor(track, sigma) for s in range(S)]
     # Initialize the fusion center with the sensor nodes
     fusion = methods[method](sensors)
     # Retrieve processing nodes from the fusion center
@@ -60,12 +74,11 @@ def simulate(method):
 
     show_filtered_measurements = False # Whether to show filtered measurements from the processing nodes, or the raw sensor data
 
-    trajectory = cross_loop()
     # Simulate the entire sequence using 1-second timestamps
     for t in range(0, T, stepsize):
         # This does the measurements from each sensor and fuses them with the respective method
         x, P = fusion.process(t)
-        gt = trajectory(t)
+        gt = track(t)
 
         # Store measurements for presentation
 

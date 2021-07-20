@@ -31,7 +31,7 @@ class InformationFilter:
 
     def init(self, time):
         self.information_vector = np.zeros((4, 1))
-        self.information_matrix = 0 * np.eye(4)
+        self.information_matrix = np.zeros((4, 4))
         self.time = time
 
     def filter(self, time, i, I):
