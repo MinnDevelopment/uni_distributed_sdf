@@ -31,11 +31,13 @@ methods = {
 # Define our simulation parameters
 
 T = 495 # Number of steps
+stepsize = 1
 S = 2 # Number of sensors
 sigma = 500 # Sensor covariance factor
 
 print("Simulation Parameters")
 print("Steps", T)
+print("Step Size", stepsize)
 print("Sensors", S)
 print("Covariance Factor", sigma)
 print("====================================")
@@ -60,7 +62,7 @@ def simulate(method):
 
     trajectory = cross_loop()
     # Simulate the entire sequence using 1-second timestamps
-    for t in range(0, T, 5):
+    for t in range(0, T, stepsize):
         # This does the measurements from each sensor and fuses them with the respective method
         x, P = fusion.process(t)
         gt = trajectory(t)
