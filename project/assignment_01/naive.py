@@ -34,8 +34,6 @@ class NaiveFusion(CentralProcessingNode):
 
         # Take measurements from each sensor
         outputs = [s.process(t) for s in self.nodes]
-        if np.random.uniform() < self.dropout_probability:
-            outputs.pop(0)
         self.measurements = [o[0][:2].flatten() for o in outputs]
         return self.combine(outputs)
 

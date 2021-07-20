@@ -34,8 +34,6 @@ class TrackletFusion(CentralProcessingNode):
     def process(self, t):
         # Take measurements from each sensor
         outputs = [s.process(t) for s in self.nodes]
-        if np.random.uniform() < self.dropout_probability:
-            outputs.pop(0)
         # Fusion is simply adding up all the information
         i = np.sum([o[0] for o in outputs], axis=0)
         I = np.sum([o[1] for o in outputs], axis=0)
