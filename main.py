@@ -57,6 +57,7 @@ print("Covariance Factor", sigma)
 print("====================================")
 
 def simulate(method):
+    np.random.seed(4)
     # Generate S many linear sensors with the same covariance
     sensors = [project.LinearSensor(track, sigma) for s in range(S)]
     # Initialize the fusion center with the sensor nodes
@@ -135,8 +136,9 @@ for method in methods.keys():
 
 # Joined plot for all methods
 
+plt.figure(figsize=(16, 4))
 for method, error in rmse.items():
-    plt.plot(range(len(error)), error, label=method)
+    plt.plot(range(len(error)), error, linewidth=0.5, label=method)
 plt.title('Root Mean Squared Error')
 plt.legend()
 plt.savefig(f'rmse.png')

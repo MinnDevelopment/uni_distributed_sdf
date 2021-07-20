@@ -1,9 +1,8 @@
-from project.kalman import KalmanFilter
-from numpy.lib.function_base import cov
-from project.information import InformationFilter
-from project import ProcessingNodeSensor, CentralProcessingNode
 import numpy as np
 from numpy.linalg import pinv as inv
+from project import CentralProcessingNode, ProcessingNodeSensor
+from project.information import InformationFilter
+from project.kalman import KalmanFilter
 
 
 class TrackletFusion(CentralProcessingNode):

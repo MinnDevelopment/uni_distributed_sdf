@@ -9,7 +9,7 @@ from project.assignment_01 import NaiveFusion
 class FederatedKalmanFilter(KalmanFilter):
     def __init__(self, H, S):
         super().__init__(H)
-        self.S = S # Number of sensors
+        self.S = S # Used for relaxed evolution model (Lecture 7 Slide 33)
     
     def Q(self, delta):
         delta4 = delta ** 4 / 4
@@ -20,7 +20,7 @@ class FederatedKalmanFilter(KalmanFilter):
                           [delta3, 0, delta2, 0],
                           [0, delta3, 0, delta2]])
         # Choose sigma from [4.5, 9]
-        return self. S * 4.5 * error
+        return self.S * 4.5 * error
 
     def filter(self, time, measurement, R):
         measurement = measurement.reshape((2, 1))
