@@ -11,13 +11,13 @@ def cross_loop(v=25, r=1000):
     """
     We fly an infinity shaped track with the cross being the start position
     """
-    a = v/r
-    t = 0
-    while True:
-        x = r * sin(t * a / 2)
-        y = r * sin(t * a) / 2
-        yield x, y
-        t += 1
+    def wrapper(t):
+        a = v/r
+        while True:
+            x = r * sin(t * a / 2)
+            y = r * sin(t * a) / 2
+            return x, y
+    return wrapper
 
 # The 4 fusion methods we should implement
 methods = {
@@ -31,8 +31,14 @@ methods = {
 # Define our simulation parameters
 
 T = 495 # Number of steps
-S = 10 # Number of sensors
+S = 2 # Number of sensors
 sigma = 500 # Sensor covariance factor
+
+print("Simulation Parameters")
+print("Steps", T)
+print("Sensors", S)
+print("Covariance Factor", sigma)
+print("====================================")
 
 def simulate(method):
     # Generate S many linear sensors with the same covariance
@@ -52,11 +58,12 @@ def simulate(method):
 
     show_filtered_measurements = False # Whether to show filtered measurements from the processing nodes, or the raw sensor data
 
+    trajectory = cross_loop()
     # Simulate the entire sequence using 1-second timestamps
-    for t, gt in zip(range(T), cross_loop()):
-        # Perform fusion at timestep t
+    for t in range(0, T, 5):
         # This does the measurements from each sensor and fuses them with the respective method
         x, P = fusion.process(t)
+        gt = trajectory(t)
 
         # Store measurements for presentation
 
@@ -86,27 +93,43 @@ def simulate(method):
     
     return errors, measurements, ground_truth, predicted, std
 
-method = 'tracklet'
+stds = dict()
+rmse = dict()
 
-errors, measurements, ground_truth, predicted, std = simulate(method)
+for method in methods.keys():
+    print("Running Method", method.capitalize())
+    print("====================================")
+    errors, measurements, ground_truth, predicted, std = simulate(method)
 
-# Plot the results for this trajectory simulation
+    stds[method] = std
+    rmse[method] = errors
 
-ground_truth = np.array(ground_truth)
-predicted = np.array(predicted)
-measurements = np.array(measurements)
+    # Plot the results for this trajectory simulation
 
-plt.plot(ground_truth[:, 0], ground_truth[:, 1], 'k', label='Ground Truth', alpha=0.5)
-plt.plot(predicted[:, 0], predicted[:, 1], 'r', label='Prediction')
-plt.scatter(measurements[:, 0], measurements[:, 1], 0.1, c='g', label='Measurements')
-plt.legend()
-plt.title(f'{method.capitalize()} Fusion with {S} Sensors and Covariance {sigma}')
-plt.savefig(f'{method}-trajectory-S{S}-COV{sigma}.png')
-plt.close()
+    ground_truth = np.array(ground_truth)
+    predicted = np.array(predicted)
+    measurements = np.array(measurements)
+
+    plt.plot(ground_truth[:, 0], ground_truth[:, 1], 'k', label='Ground Truth', alpha=0.5)
+    plt.plot(predicted[:, 0], predicted[:, 1], 'r', label='Prediction')
+    plt.scatter(measurements[:, 0], measurements[:, 1], 0.1, c='g', label='Measurements')
+    plt.legend()
+    plt.title(f'{method.capitalize()} Fusion with {S} Sensors and Covariance {sigma}')
+    plt.savefig(f'{method}-trajectory-S{S}-COV{sigma}.png')
+    plt.close()
 
 # Joined plot for all methods
 
-plt.plot(range(T), errors)
+for method, error in rmse.items():
+    plt.plot(range(len(error)), error, label=method)
 plt.title('Root Mean Squared Error')
-plt.savefig(f'{method}-error.png')
+plt.legend()
+plt.savefig(f'rmse.png')
+plt.close()
+
+for method, std in stds.items():
+    plt.plot(range(len(std)), std, label=method)
+plt.title('Standard Deviation')
+plt.legend()
+plt.savefig(f'std.png')
 plt.close()

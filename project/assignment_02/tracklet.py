@@ -9,7 +9,7 @@ class TrackletSensorUnit(ProcessingNodeSensor):
         super().__init__(sensor)
 
     def process(self, t): # t is unused since we don't do local filtering
-        z, R = self.sensor.measure()
+        z, R = self.sensor.measure(t)
         # Store measurement for presentation
         self.measurement = np.array(z)
         # Convert measurement to information space
@@ -25,15 +25,25 @@ class TrackletFusion(CentralProcessingNode):
         self.nodes = [TrackletSensorUnit(sensor) for sensor in sensors]
         self.filter = InformationFilter()
     
+    def tostate(self, y, Y):
+        # Convert from information space to state space
+        covariance = inv(Y)
+        state = covariance @ y
+        return state, covariance
+    
     def process(self, t):
         # Take measurements from each sensor
         outputs = [s.process(t) for s in self.nodes]
+        if np.random.uniform() < self.dropout_probability:
+            outputs.pop(0)
         # Fusion is simply adding up all the information
         i = np.sum([o[0] for o in outputs], axis=0)
         I = np.sum([o[1] for o in outputs], axis=0)
         # This filters in information space (inverse covariance)
         y, Y = self.filter(t, i, I)
-        # Convert from information space to state space
-        covariance = inv(Y)
-        state = covariance @ y
-        return state, covariance
+        # Convert to state space
+        return self.tostate(y, Y)
+    
+    def predict(self, t): # This doesn't work well at all
+        y, Y = self.filter.predict(t)
+        return self.tostate(y, Y)

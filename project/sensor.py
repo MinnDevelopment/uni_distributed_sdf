@@ -24,8 +24,8 @@ class LinearSensor:
     def noise(self):
         return np.random.multivariate_normal([0, 0], self.R)
     
-    def measure(self):
-        return self.noise() + next(self.gen), self.R
+    def measure(self, t):
+        return self.noise() + self.gen(t), self.R
 
 class ProcessingNodeSensor:
     def __init__(self, sensor: LinearSensor):
@@ -35,7 +35,7 @@ class ProcessingNodeSensor:
 
     def process(self, t):
         # Take a sensor measurement
-        z, R = self.sensor.measure()
+        z, R = self.sensor.measure(t)
         # Store unfused measurement for presentation
         self.measurement = np.array(z)
         # Do local filtering on the sensor measurement
@@ -43,3 +43,6 @@ class ProcessingNodeSensor:
 
         # Return the filtered state and covariance
         return x, P
+    
+    def predict(self, t):
+        return self.filter.predict(t)

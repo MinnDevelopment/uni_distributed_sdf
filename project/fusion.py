@@ -1,10 +1,6 @@
 from project.sensor import LinearSensor
 from typing import List
 
-import numpy as np
-
-from project import ProcessingNodeSensor
-
 class CentralProcessingNode:
     def __init__(self, sensors: List[LinearSensor]):
         self.sensors = sensors
@@ -13,3 +9,6 @@ class CentralProcessingNode:
 
     def process(self, t):
         pass # Implemented by Federated and Naive Fusion centers
+
+    def predict(self, t):
+        pass

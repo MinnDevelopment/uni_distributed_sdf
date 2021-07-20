@@ -11,19 +11,14 @@ class NaiveFusion(CentralProcessingNode):
         super().__init__(sensors)
         self.nodes = [ProcessingNodeSensor(sensor) for sensor in sensors]
 
-    def process(self, t):
+    def combine(self, outputs):
         x = np.zeros((4, 1))
         P = np.zeros((4, 4))
-
-        # Take measurements from each sensor
-        outputs = [s.process(t) for s in self.nodes]
-        self.measurements = [o[0][:2].flatten() for o in outputs]
 
         # Perform convex combination
         for x_i, P_i in outputs:
             # Compute the sum for the sensors with weights
             P_i = inv(P_i)
-            # print(P_i.shape, x_i.shape, x.shape)
             P += P_i
             x += P_i @ x_i
 
@@ -31,3 +26,23 @@ class NaiveFusion(CentralProcessingNode):
         x = P @ x
 
         return x, P
+
+
+    def process(self, t):
+        x = np.zeros((4, 1))
+        P = np.zeros((4, 4))
+
+        # Take measurements from each sensor
+        outputs = [s.process(t) for s in self.nodes]
+        if np.random.uniform() < self.dropout_probability:
+            outputs.pop(0)
+        self.measurements = [o[0][:2].flatten() for o in outputs]
+        return self.combine(outputs)
+
+    def predict(self, t):
+        x = np.zeros((4, 1))
+        P = np.zeros((4, 4))
+
+        # Predict position from each sensor
+        outputs = [s.predict(t) for s in self.nodes]
+        return self.combine(outputs)
