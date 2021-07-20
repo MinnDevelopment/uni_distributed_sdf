@@ -7,30 +7,19 @@ from numpy.linalg import pinv as inv
 class TrackletSensorUnit(ProcessingNodeSensor):
     def __init__(self, sensor):
         super().__init__(sensor)
-
-    def process(self, t):
-        prior_x, prior_P = self.filter.predict(t)
-        post_x, post_P = ProcessingNodeSensor.process(self, t)
-
-        prior_P, post_P = inv(prior_P), inv(post_P)
-        I = post_P - prior_P
-        i = post_P @ post_x - prior_P @ prior_x
-        return i, I
-
-        # z, R = self.sensor.measure(t)
-        # # Store measurement for presentation
-        # self.measurement = np.array(z)
-        # # Convert measurement to information space
-        # H = self.sensor.H
-        # R = inv(self.sensor.R)
-        # I = H.T @ R @ H
-        # i = H.T @ R @ z
-        # return i, I
+    
+    # Used to gain the prior by applying the transition model to the posterior
+    def F(self, delta):
+        return self.filter.F(delta)
+    
+    def Q(self, delta):
+        return self.filter.Q(delta)
 
 class TrackletFusion(CentralProcessingNode):
     def __init__(self, sensors):
         super().__init__(sensors)
         self.nodes = [TrackletSensorUnit(sensor) for sensor in sensors]
+        self.previous = [(node.filter.state, node.filter.covariance) for node in self.nodes] # Used to get prior
         self.filter = InformationFilter()
     
     def tostate(self, y, Y):
@@ -41,10 +30,30 @@ class TrackletFusion(CentralProcessingNode):
     
     def process(self, t):
         # Take measurements from each sensor
-        outputs = [s.process(t) for s in self.nodes]
-        # Fusion is simply adding up all the information
-        i = np.sum([o[0] for o in outputs], axis=0)
-        I = np.sum([o[1] for o in outputs], axis=0)
+        i = np.zeros((4, 1))
+        I = np.zeros((4, 4))
+        posterior = []
+        for node, previous in zip(self.nodes, self.previous):
+            delta = t - node.filter.time
+            F, Q = node.F(delta), node.Q(delta)
+
+            # Receive posterior for current time step
+            post_x, post_P = node.process(t)
+            posterior.append((post_x, post_P))
+
+            # Obtain prior through transition model (F, Q)
+            prior_P = F @ previous[1] @ F.T + Q
+            prior_x = F @ previous[0]
+            
+            # Change to information space
+            post_P = inv(post_P)
+            prior_P = inv(prior_P)
+
+            I += post_P - prior_P
+            i += post_P @ post_x - prior_P @ prior_x
+
+        # Save our new posteriors for the next step
+        self.previous = posterior
         # This filters in information space (inverse covariance)
         y, Y = self.filter(t, i, I)
         # Convert to state space
