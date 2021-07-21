@@ -6,7 +6,7 @@ from project import KalmanFilter, LinearSensor, ProcessingNodeSensor
 from project.assignment_01 import NaiveFusion
 
 
-class FederatedKalmanFilter(KalmanFilter):
+class RelaxedEvolutionKalmanFilter(KalmanFilter):
     def __init__(self, H, S):
         super().__init__(H)
         self.S = S # Used for relaxed evolution model (Lecture 7 Slide 33)
@@ -44,6 +44,6 @@ class FederatedFusion(NaiveFusion):
         super().__init__(sensors)
         self.nodes = [ProcessingNodeSensor(sensor) for sensor in sensors]
 
-        # Use the federated filter implementation instead of the default
+        # Use the relaxed evolution model based filter implementation instead of the default
         for node in self.nodes:
-            node.filter = FederatedKalmanFilter(node.sensor.H, len(self.nodes))
+            node.filter = RelaxedEvolutionKalmanFilter(node.sensor.H, len(self.nodes))
