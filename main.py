@@ -16,7 +16,7 @@ def cross_loop(v=25, r=1000):
         while True:
             x = r * sin(t * a / 2)
             y = r * sin(t * a) / 2
-            return x, y
+            return np.vstack((x, y))
     return wrapper
 
     
@@ -29,14 +29,18 @@ def sine(v=25, r=1000):
         a = v/r
         while True:
             y = r * sin(t * a)
-            return t, y
+            return np.vstack((t, y))
     return wrapper
 
 # The 4 fusion methods we should implement
 methods = {
+    'central': project.CentralFusion,
+
     # Convex combination / Least-Squares / Naive Fusion
     'naive': project.assignment_01.NaiveFusion,
+    # Information Filtering
     'tracklet': project.assignment_02.TrackletFusion,
+    # Relaxed Evolution Model
     'federated': project.assignment_02.FederatedFusion,
     # 'distributed': project.assignment_02.DistributedFusion
 }
@@ -49,15 +53,19 @@ S = 4 # Number of sensors
 sigma = 100 # Sensor covariance factor
 track = sine()
 
+random_seed = (T << 16) + (stepsize << 8) + S + sigma
+
 print("Simulation Parameters")
 print("Steps", T)
 print("Step Size", stepsize)
 print("Sensors", S)
 print("Covariance Factor", sigma)
+print("Seed", random_seed)
 print("====================================")
 
 def simulate(method):
-    np.random.seed(4)
+    np.random.seed(random_seed) # Makes sure the measurements are identical for all episodes
+
     # Generate S many linear sensors with the same covariance
     sensors = [project.LinearSensor(track, sigma) for s in range(S)]
     # Initialize the fusion center with the sensor nodes
@@ -93,16 +101,27 @@ def simulate(method):
         measurements.extend(Z)
 
         # Use the sensor model to get the predicted position after fusion
-        x = (H @ x).flatten()
-        error = np.sqrt(np.mean((x - np.array(gt))**2)) # RMSE
+        x = H @ x
+        error = np.sqrt(np.mean((x - gt)**2)) # RMSE
         errors.append(error)
-        ground_truth.append(gt)
-        predicted.append(x)
+        ground_truth.append(gt.flatten())
+        predicted.append(x.flatten())
         std.append(np.sqrt(np.trace(inv(P))))
+
+        # Do a prediction
+        # x, P = fusion.predict(t+1)
+        # gt = track(t+1)
+        # x = H @ x
+        # error = np.sqrt(np.mean((x - gt)**2)) # RMSE
+        # errors.append(error)
+        # ground_truth.append(gt.flatten())
+        # predicted.append(x.flatten())
+        # std.append(np.sqrt(np.trace(inv(P))))
+
         if __debug__: # This means you can disable logs with `python3 -O <file>`
             print("Step", t)
-            print("Truth:", gt)
-            print("Predicted:", x)
+            print("Truth:", gt.T)
+            print("Predicted:", x.T)
             print("Covariance:", P) # You can observe this converges to a fixed covariance matrix over time
             print("Error:", error)
             print("=======")
@@ -113,7 +132,7 @@ stds = dict()
 rmse = dict()
 
 for method in methods.keys():
-    print("Running Method", method.capitalize())
+    print("Running Method:", method.capitalize())
     print("====================================")
     errors, measurements, ground_truth, predicted, std = simulate(method)
 

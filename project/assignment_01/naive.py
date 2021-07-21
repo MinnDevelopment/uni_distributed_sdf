@@ -1,9 +1,9 @@
-from project.sensor import LinearSensor
 from typing import List
 
 import numpy as np
 from numpy.linalg import pinv as inv
-from project import CentralProcessingNode, LinearSensor, ProcessingNodeSensor
+from project import CentralProcessingNode, ProcessingNodeSensor
+from project.sensor import LinearSensor
 
 
 class NaiveFusion(CentralProcessingNode):

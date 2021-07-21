@@ -22,7 +22,7 @@ class LinearSensor:
         return self.model.R
     
     def noise(self):
-        return np.random.multivariate_normal([0, 0], self.R)
+        return np.random.multivariate_normal([0, 0], self.R).reshape((2, 1))
     
     def measure(self, t):
         return self.noise() + self.gen(t), self.R

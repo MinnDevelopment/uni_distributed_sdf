@@ -35,7 +35,6 @@ class InformationFilter:
         self.time = time
 
     def filter(self, time, i, I):
-        i = i.reshape((4, 1)) # Just to make sure the sum works properly
         # Compute prior
         prior_y, prior_Y = self.predict(time)
 

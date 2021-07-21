@@ -34,7 +34,6 @@ class KalmanFilter:
         self.time = time
 
     def filter(self, time, measurement, R):
-        measurement = measurement.reshape((2, 1))
         delta = time - self.time
         F = self.F(delta)
         H = self.H
