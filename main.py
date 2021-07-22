@@ -60,12 +60,12 @@ methods = {
 # Define our simulation parameters
 
 T = 495 # Number of steps
-stepsize = 2
-S = 4 # Number of sensors
-sigma = 10000 # Sensor covariance factor
-track, velocity = cross_loop()
+stepsize = 1
+sigma = [50, 100, 200, 500] # Sensor covariance factor
+S = len(sigma) # Number of sensors
+track, velocity = sine()
 
-random_seed = (T << 16) + (stepsize << 8) + S + sigma
+random_seed = (T << 16) + (stepsize << 8) + S + int(np.mean(sigma))
 
 print("Simulation Parameters")
 print("Steps", T)
@@ -79,7 +79,7 @@ def simulate(method):
     np.random.seed(random_seed) # Makes sure the measurements are identical for all episodes
 
     # Generate S many linear sensors with the same covariance
-    sensors = [project.LinearSensor(track, sigma) for s in range(S)]
+    sensors = [project.LinearSensor(track, s) for s in sigma]
     # Initialize the fusion center with the sensor nodes
     fusion = methods[method](sensors)
     # Retrieve processing nodes from the fusion center
@@ -94,8 +94,6 @@ def simulate(method):
     std = []
     nees = []
 
-    show_filtered_measurements = False # Whether to show filtered measurements from the processing nodes, or the raw sensor data
-
     # Simulate the entire sequence using 1-second timestamps
     for t in range(0, T, stepsize):
         # This does the measurements from each sensor and fuses them with the respective method
@@ -104,19 +102,14 @@ def simulate(method):
         vel_gt = velocity(t)
 
         # Store measurements for presentation
-
-        if show_filtered_measurements:
-            # Note that these measurements are already locally filtered by the processing nodes!
-            Z = fusion.measurements
-        else:
-            # These are the raw measurements from the sensor (with noise included)
-            # Unfiltered measurements will be a lot less accurate than the measurements provided by the local filtering
-            Z = [node.measurement for node in nodes]
+        # These are the raw measurements from the sensor (with noise included)
+        # Unfiltered measurements will be a lot less accurate than the measurements provided by the local filtering
+        Z = [node.measurement for node in nodes]
         measurements.extend(Z)
 
         # Use the sensor model to get the predicted position after fusion
         gt_x = np.vstack((gt, vel_gt))
-        nees.extend(((gt_x - x).T @ inv(P) @ (gt_x - x)).flatten()) # TODO: Compute actual gt velocity
+        nees.extend(((gt_x - x).T @ inv(P) @ (gt_x - x)).flatten())
         x = H @ x
         error = np.sqrt(np.mean((x - gt)**2)) # RMSE
         errors.append(error)
@@ -130,7 +123,7 @@ def simulate(method):
             gt = track(t+i)
             vel_gt = velocity(t+i)
             gt_x = np.vstack((gt, vel_gt))
-            nees.extend(((gt_x - x).T @ inv(P) @ (gt_x - x)).flatten()) # TODO: Compute actual gt velocity
+            nees.extend(((gt_x - x).T @ inv(P) @ (gt_x - x)).flatten())
             x = H @ x
             error = np.sqrt(np.mean((x - gt)**2)) # RMSE
             errors.append(error)
@@ -186,8 +179,13 @@ plt.figure(figsize=(16, 4))
 width = 0.75 * len(rmse.items()) + 0.75
 baseline = np.array(rmse['central'])
 for method, error in rmse.items():
-    plt.plot(range(len(error)), np.array(error) - baseline, linewidth=width, label=method)
+    if method == 'central':
+        continue
+    # plt.plot(range(len(error)), np.array(error) - baseline, linewidth=width, label=method)
+    plt.plot(range(len(error)), error, linewidth=width, label=method)
     width -= 0.75
+error = rmse['central']
+plt.scatter(range(len(error)), error, c='b', label='central')
 plt.title('Root Mean Squared Error')
 plt.legend()
 plt.savefig(f'rmse.png')
@@ -197,8 +195,13 @@ plt.figure(figsize=(16, 4))
 width = 0.75 * len(nees.items()) + 0.75
 baseline = np.array(nees['central'])
 for method, error in nees.items():
-    plt.plot(range(len(error)), np.array(error) - baseline, linewidth=width, label=method)
+    if method == 'central':
+        continue
+    # plt.plot(range(len(error)), np.array(error) - baseline, linewidth=width, label=method)
+    plt.plot(range(len(error)), error, linewidth=width, label=method)
     width -= 0.75
+error = nees['central']
+plt.scatter(range(len(error)), error, c='b', label='central')
 plt.title('Normalized Estimation Error Squared')
 plt.legend()
 plt.savefig(f'nees.png')
@@ -207,8 +210,13 @@ plt.close()
 width = 0.75 * len(stds.items()) + 0.75
 baseline = np.array(stds['central'])
 for method, std in stds.items():
-    plt.plot(range(len(std)), np.array(std) - baseline, linewidth=width, label=method)
+    if method == 'central':
+        continue
+    # plt.plot(range(len(std)), np.array(std) - baseline, linewidth=width, label=method)
+    plt.plot(range(len(std)), std, linewidth=width, label=method)
     width -= 0.75
+std = stds['central']
+plt.scatter(range(len(std)), std, c='b', label='central')
 plt.title('Standard Deviation')
 plt.legend()
 plt.savefig(f'std.png')

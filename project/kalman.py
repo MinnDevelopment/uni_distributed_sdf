@@ -2,13 +2,12 @@ import numpy as np
 from numpy.linalg import pinv as inv
 
 class KalmanFilter:
-    __slots__ = 'state', 'covariance', 'time', 'H'
+    __slots__ = 'state', 'covariance', 'time', 'H', 'R'
 
-    def __init__(self, H):
-        self.state = np.zeros((4, 1))
-        self.covariance = 500 * np.eye(4)
-        self.time = 0
-        self.H = H
+    def __init__(self, model):
+        self.H = model.H
+        self.R = model.R
+        self.init(0)
 
     def F(self, delta):
         # v = a * t + v0
@@ -30,10 +29,11 @@ class KalmanFilter:
 
     def init(self, time):
         self.state = np.zeros((4, 1))
-        self.covariance = 500 * np.eye(4)
+        self.covariance = np.trace(self.R) * np.eye(4)
         self.time = time
 
-    def filter(self, time, measurement, R):
+    def filter(self, time, measurement):
+        R = self.R
         H = self.H
         # Predict location
         estimated_state, estimate_covariance = self.predict(time)
@@ -47,8 +47,8 @@ class KalmanFilter:
         self.time = time
         return self.state, self.covariance
 
-    def __call__(self, time, measurement, R):
-        return self.filter(time, measurement, R)
+    def __call__(self, time, measurement):
+        return self.filter(time, measurement)
 
     def predict(self, time):
         delta = time - self.time

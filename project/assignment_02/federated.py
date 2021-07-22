@@ -7,8 +7,8 @@ from project.assignment_01 import NaiveFusion
 
 
 class RelaxedEvolutionKalmanFilter(KalmanFilter):
-    def __init__(self, H, S):
-        super().__init__(H)
+    def __init__(self, model, S):
+        super().__init__(model)
         self.S = S # Used for relaxed evolution model (Lecture 7 Slide 33)
     
     def Q(self, delta):
@@ -22,4 +22,4 @@ class FederatedFusion(NaiveFusion):
 
         # Use the relaxed evolution model based filter implementation instead of the default
         for node in self.nodes:
-            node.filter = RelaxedEvolutionKalmanFilter(node.sensor.H, len(self.nodes))
+            node.filter = RelaxedEvolutionKalmanFilter(node.model, len(self.nodes))

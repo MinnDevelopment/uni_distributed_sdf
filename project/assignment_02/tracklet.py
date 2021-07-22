@@ -13,10 +13,10 @@ class TrackletFusion(CentralProcessingNode):
         self.filter = InformationFilter()
     
     def F(self, delta):
-        return KalmanFilter(np.eye(1)).F(delta)
+        return KalmanFilter(self.nodes[0].model).F(delta)
 
     def Q(self, delta):
-        return KalmanFilter(np.eye(1)).Q(delta)
+        return KalmanFilter(self.nodes[0].model).Q(delta)
     
     def tostate(self, y, Y):
         # Convert from information space to state space
@@ -56,20 +56,5 @@ class TrackletFusion(CentralProcessingNode):
         return self.tostate(y, Y)
     
     def predict(self, t): # This doesn't work well at all
-        # delta = t - self.filter.time
-        # F, Q = self.F(delta), self.Q(delta)
-        # x = np.zeros((4, 1))
-        # P = np.zeros((4, 4))
-        # # Perform convex combination
-        # for x_i, P_i in self.previous:
-        #     P_i = F @ P_i @ F.T + Q
-        #     x_i = F @ x_i
-        #     P_i = inv(P_i)
-        #     P += P_i
-        #     x += P_i @ x_i
-
-        # P = inv(P)
-        # x = P @ x
-        # return x, P
         y, Y = self.filter.predict(t)
         return self.tostate(y, Y)

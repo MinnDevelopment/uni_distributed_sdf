@@ -31,7 +31,6 @@ class NaiveFusion(CentralProcessingNode):
     def process(self, t):
         # Take measurements from each sensor
         outputs = [s.process(t) for s in self.nodes]
-        self.measurements = [o[0][:2].flatten() for o in outputs]
         return self.combine(outputs)
 
     def predict(self, t):
