@@ -28,11 +28,11 @@ class TrackletFusion(CentralProcessingNode):
         # Take measurements from each sensor
         i = np.zeros((4, 1))
         I = np.zeros((4, 4))
-        posterior = []
-        for node, previous in zip(self.nodes, self.previous):
-            delta = t - node.filter.time
-            F, Q = self.F(delta), self.Q(delta)
 
+        posterior = []
+        delta = t - self.filter.time
+        F, Q = self.F(delta), self.Q(delta)
+        for node, previous in zip(self.nodes, self.previous):
             # Receive posterior for current time step
             post_x, post_P = node.process(t)
             posterior.append((post_x, post_P))
@@ -56,5 +56,20 @@ class TrackletFusion(CentralProcessingNode):
         return self.tostate(y, Y)
     
     def predict(self, t): # This doesn't work well at all
+        # delta = t - self.filter.time
+        # F, Q = self.F(delta), self.Q(delta)
+        # x = np.zeros((4, 1))
+        # P = np.zeros((4, 4))
+        # # Perform convex combination
+        # for x_i, P_i in self.previous:
+        #     P_i = F @ P_i @ F.T + Q
+        #     x_i = F @ x_i
+        #     P_i = inv(P_i)
+        #     P += P_i
+        #     x += P_i @ x_i
+
+        # P = inv(P)
+        # x = P @ x
+        # return x, P
         y, Y = self.filter.predict(t)
         return self.tostate(y, Y)

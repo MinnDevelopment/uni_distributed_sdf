@@ -30,7 +30,7 @@ class LinearSensor:
 class ProcessingNodeSensor:
     def __init__(self, sensor: LinearSensor):
         self.sensor = sensor
-        self.measurement = np.zeros((1, 2))
+        self.measurement = np.zeros((2, 1))
         self.filter = KalmanFilter(sensor.model.H)
 
     def process(self, t):

@@ -51,13 +51,15 @@ class InformationFilter:
         delta = time - self.time
         if delta == 0:
             return self.information_vector, self.information_matrix
-        F = inv(self.F(delta))
-        Q = inv(self.Q(delta))
+        F = self.F(delta)
+        Q = self.Q(delta)
 
-        M = F.T @ self.information_matrix @ F
-        C = M @ inv(M + Q)
-        L = np.eye(4) - C
-        
-        mat = L @ M @ L.T + C @ Q @ C.T
-        vec = L @ F.T @ self.information_vector
-        return vec, mat
+        # Apply dynamics model in state space
+        P = inv(self.information_matrix)
+        x = F @ P @ self.information_vector
+        P = F @ inv(self.information_matrix) @ F.T + Q
+
+        # Convert back to information space
+        Y = inv(P)
+        y = inv(P) @ x
+        return y, Y

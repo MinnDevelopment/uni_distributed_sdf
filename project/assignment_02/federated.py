@@ -24,12 +24,9 @@ class RelaxedEvolutionKalmanFilter(KalmanFilter):
 
     def filter(self, time, measurement, R):
         measurement = measurement.reshape((2, 1))
-        delta = time - self.time
-        F = self.F(delta)
         H = self.H
         # Predict location
-        estimated_state = F @ self.state
-        estimated_covariance = F @ self.covariance @ F.T + self.Q(delta)
+        estimated_state, estimated_covariance = self.predict(time)
         # Calculate innovation from measurement
         innovation_error = H @ estimated_covariance @ H.T + R
         gain = estimated_covariance @ H.T @ inv(innovation_error)
