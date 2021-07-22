@@ -12,15 +12,7 @@ class RelaxedEvolutionKalmanFilter(KalmanFilter):
         self.S = S # Used for relaxed evolution model (Lecture 7 Slide 33)
     
     def Q(self, delta):
-        delta4 = delta ** 4 / 4
-        delta3 = delta ** 3 / 2
-        delta2 = delta ** 2
-        error = np.array([[delta4, 0, delta3, 0],
-                          [0, delta4, 0, delta3],
-                          [delta3, 0, delta2, 0],
-                          [0, delta3, 0, delta2]])
-        # Choose sigma from [4.5, 9]
-        return self.S * 4.5 * error
+        return self.S * KalmanFilter.Q(self, delta)
 
 
 class FederatedFusion(NaiveFusion):
