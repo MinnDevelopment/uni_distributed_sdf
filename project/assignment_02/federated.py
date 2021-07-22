@@ -22,19 +22,6 @@ class RelaxedEvolutionKalmanFilter(KalmanFilter):
         # Choose sigma from [4.5, 9]
         return self.S * 4.5 * error
 
-    def filter(self, time, measurement, R):
-        measurement = measurement.reshape((2, 1))
-        H = self.H
-        # Predict location
-        estimated_state, estimated_covariance = self.predict(time)
-        # Calculate innovation from measurement
-        innovation_error = H @ estimated_covariance @ H.T + R
-        gain = estimated_covariance @ H.T @ inv(innovation_error)
-        # Update internal state with new information
-        self.state = estimated_state + gain @ (measurement - H @ estimated_state)
-        self.covariance = estimated_covariance - gain @ innovation_error @ gain.T
-        self.time = time
-        return self.state, self.covariance
 
 class FederatedFusion(NaiveFusion):
     def __init__(self, sensors: List[LinearSensor]):

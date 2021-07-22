@@ -46,7 +46,7 @@ def sine(v=25, r=1000):
 # The 4 fusion methods we should implement
 methods = {
     # Fusion center receives raw measurements (no T2TF)
-    'central': project.CentralFusion,
+    'central': project.assignment_01.CentralFusion,
     # Convex combination / Least-Squares / Naive Fusion
     'naive': project.assignment_01.NaiveFusion,
     # Information Filtering

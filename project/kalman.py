@@ -34,7 +34,6 @@ class KalmanFilter:
         self.time = time
 
     def filter(self, time, measurement, R):
-        delta = time - self.time
         H = self.H
         # Predict location
         estimated_state, estimate_covariance = self.predict(time)
