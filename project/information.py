@@ -29,7 +29,9 @@ class InformationFilter:
 
     def init(self, time):
         self.information_vector = np.zeros((4, 1))
-        self.information_matrix = np.eye(4)
+        # Not exactly 0 since we need to have a non-singular matrix
+        # If the matrix can't be inverted, we can't convert to state space.
+        self.information_matrix = 1e-6 * np.eye(4) # np.zeros((4, 4))
         self.time = time
 
     def filter(self, time, i, I):
@@ -42,8 +44,8 @@ class InformationFilter:
         self.time = time
         return self.information_vector, self.information_matrix
 
-    def __call__(self, time, measurement, R):
-        return self.filter(time, measurement, R)
+    def __call__(self, time, i, I):
+        return self.filter(time, i, I)
 
     def predict(self, time):
         delta = time - self.time

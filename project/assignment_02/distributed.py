@@ -13,11 +13,11 @@ class DistributedKalmanFilter(RelaxedEvolutionKalmanFilter):
         super().__init__(model, len(sensor_models))
         self.Rs = [m.R for m in sensor_models] # Assuming H is the same everywhere for simplicity
         self.previous_covariances = [R.trace() * np.eye(4) for R in self.Rs]
-        self.globalization(0) # This is technically not needed but 0|0 is a posterior we can use in prediction for k=1
+        self.globalization(0) # P(0|0) is also a posterior we can globalize
 
     def compute_covariance(self, delta, P, R):
         F = self.F(delta)
-        Q = self.Q(delta)
+        Q = self.Q(delta) # This is in-fact also relaxed evolution, which makes sense.
         H = self.H
 
         # Same predict/filter cycle as usual, except we don't care about the state for each local track
@@ -35,6 +35,10 @@ class DistributedKalmanFilter(RelaxedEvolutionKalmanFilter):
         # Update the local state and covariance by using the global covariance
         self.state = global_P @ inv(P) @ x
         self.covariance = global_P
+
+        # I'm very unsure about this part here, but without this it doesn't work properly.
+        # I mean technically all sensors would have this covariance after globalization, right?
+        self.previous_covariances = [global_P for P in covariances]
     
     def filter(self, time, measurement):
         delta = time - self.time
@@ -42,7 +46,7 @@ class DistributedKalmanFilter(RelaxedEvolutionKalmanFilter):
         x, P = RelaxedEvolutionKalmanFilter.filter(self, time, measurement)
         # Globalization step to get global covariance
         self.globalization(delta)
-        return x, P # self.state, self.covariance
+        return x, P
 
 class DistributedSensorNode(ProcessingNodeSensor):
     def __init__(self, sensor):

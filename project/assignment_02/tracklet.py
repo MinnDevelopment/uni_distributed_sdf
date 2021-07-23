@@ -38,8 +38,8 @@ class TrackletFusion(CentralProcessingNode):
             posterior.append((post_x, post_P))
 
             # Obtain prior through transition model (F, Q)
-            prior_P = F @ previous[1] @ F.T + Q
-            prior_x = F @ previous[0]
+            prior_P = F @ previous[1] @ F.T + Q # P^s(k-1|k-1) -> P^s(k|k-1)
+            prior_x = F @ previous[0] # x^s(k-1|k-1) -> x^s(k|k-1)
             
             # Change to information space
             post_P = inv(post_P)

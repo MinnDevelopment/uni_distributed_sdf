@@ -60,8 +60,8 @@ methods = {
 # Define our simulation parameters
 
 T = 495 # Number of steps
-stepsize = 2
-sigma = [50, 100, 200, 500] # Sensor covariance factor
+stepsize = 10
+sigma = [500, 700, 100, 300] # Sensor covariance factor
 S = len(sigma) # Number of sensors
 track, velocity = cross_loop()
 # track, velocity = sine()
@@ -183,10 +183,10 @@ for method, error in rmse.items():
     if method == 'central':
         continue
     # plt.plot(range(len(error)), np.array(error) - baseline, linewidth=width, label=method)
-    plt.plot(range(len(error)), error, linewidth=width, label=method)
+    plt.plot(range(len(error)), error, linewidth=1, label=method)
     width -= 0.75
 error = rmse['central']
-plt.scatter(range(len(error)), error, c='b', label='central')
+plt.scatter(range(len(error)), error, c='k', marker='+', label='central')
 plt.title('Root Mean Squared Error')
 plt.legend()
 plt.savefig(f'rmse.png')
@@ -199,25 +199,26 @@ for method, error in nees.items():
     if method == 'central':
         continue
     # plt.plot(range(len(error)), np.array(error) - baseline, linewidth=width, label=method)
-    plt.plot(range(len(error)), error, linewidth=width, label=method)
+    plt.plot(range(len(error)), error, linewidth=1, label=method)
     width -= 0.75
 error = nees['central']
-plt.scatter(range(len(error)), error, c='b', label='central')
+plt.scatter(range(len(error)), error, c='k', marker='+', label='central')
 plt.title('Normalized Estimation Error Squared')
 plt.legend()
 plt.savefig(f'nees.png')
 plt.close()
 
+plt.figure(figsize=(16, 4))
 width = 0.75 * len(stds.items()) + 0.75
 baseline = np.array(stds['central'])
 for method, std in stds.items():
     if method == 'central':
         continue
     # plt.plot(range(len(std)), np.array(std) - baseline, linewidth=width, label=method)
-    plt.plot(range(len(std)), std, linewidth=width, label=method)
+    plt.plot(range(len(std)), std, linewidth=1, label=method)
     width -= 0.75
 std = stds['central']
-plt.scatter(range(len(std)), std, c='b', label='central')
+plt.scatter(range(len(std)), std, c='k', marker='+', label='central')
 plt.title('Standard Deviation')
 plt.legend()
 plt.savefig(f'std.png')
