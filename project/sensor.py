@@ -1,7 +1,9 @@
 from typing import List
+
 import numpy as np
 
 from project import KalmanFilter
+
 
 class SensorModel:
     def __init__(self, R, H=np.hstack([np.eye(2), np.zeros((2, 2))])):

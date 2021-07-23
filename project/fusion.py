@@ -1,5 +1,7 @@
-from project.sensor import LinearSensor
 from typing import List
+
+from project.sensor import LinearSensor
+
 
 class CentralProcessingNode:
     def __init__(self, sensors: List[LinearSensor]):

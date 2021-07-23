@@ -1,7 +1,7 @@
 from typing import List
 
 import numpy as np
-from numpy.linalg import pinv as inv
+from numpy.linalg import inv as inv
 from project import CentralProcessingNode, ProcessingNodeSensor
 from project.sensor import LinearSensor
 

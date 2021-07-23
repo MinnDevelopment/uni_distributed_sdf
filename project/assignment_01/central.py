@@ -1,10 +1,10 @@
-from project.kalman import KalmanFilter
-import numpy as np
-from numpy.linalg import pinv as inv
 from typing import List
 
-from project.sensor import ProcessingNodeSensor, LinearSensor, SensorModel
+import numpy as np
+from numpy.linalg import inv as inv
 from project.fusion import CentralProcessingNode
+from project.kalman import KalmanFilter
+from project.sensor import LinearSensor, ProcessingNodeSensor, SensorModel
 
 # This is only used for evaluation
 

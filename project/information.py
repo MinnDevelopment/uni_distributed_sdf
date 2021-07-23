@@ -1,7 +1,5 @@
 import numpy as np
-from numpy.lib.function_base import cov
-from numpy.linalg import pinv as inv
-
+from numpy.linalg import inv as inv
 
 # This is mostly derived from wikipedia: https://en.wikipedia.org/wiki/Kalman_filter#Information_filter
 
@@ -31,7 +29,7 @@ class InformationFilter:
 
     def init(self, time):
         self.information_vector = np.zeros((4, 1))
-        self.information_matrix = np.zeros((4, 4))
+        self.information_matrix = np.eye(4)
         self.time = time
 
     def filter(self, time, i, I):

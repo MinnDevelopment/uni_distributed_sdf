@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.linalg import pinv as inv
+from numpy.linalg import inv as inv
 
 class KalmanFilter:
     __slots__ = 'state', 'covariance', 'time', 'H', 'R'

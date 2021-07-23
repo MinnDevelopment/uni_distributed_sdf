@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy import sin, cos
-from numpy.linalg import pinv as inv
+from numpy import cos, sin
+from numpy.linalg import inv as inv
 
 import project
 
@@ -60,7 +60,7 @@ methods = {
 # Define our simulation parameters
 
 T = 495 # Number of steps
-stepsize = 1
+stepsize = 2
 sigma = [50, 100, 200, 500] # Sensor covariance factor
 S = len(sigma) # Number of sensors
 track, velocity = cross_loop()
@@ -96,7 +96,7 @@ def simulate(method):
     nees = []
 
     # Simulate the entire sequence using 1-second timestamps
-    for t in range(0, T, stepsize):
+    for t in range(1, T, stepsize):
         # This does the measurements from each sensor and fuses them with the respective method
         x, P = fusion.process(t)
         gt = track(t)

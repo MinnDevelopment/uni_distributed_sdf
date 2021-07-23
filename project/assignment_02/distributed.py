@@ -1,8 +1,7 @@
-from project.kalman import KalmanFilter
 from typing import List
 
 import numpy as np
-from numpy.linalg import pinv as inv
+from numpy.linalg import inv as inv
 from project.assignment_01 import NaiveFusion
 from project.assignment_02.federated import RelaxedEvolutionKalmanFilter
 from project.sensor import ProcessingNodeSensor, SensorModel
@@ -43,7 +42,7 @@ class DistributedKalmanFilter(RelaxedEvolutionKalmanFilter):
         x, P = RelaxedEvolutionKalmanFilter.filter(self, time, measurement)
         # Globalization step to get global covariance
         self.globalization(delta)
-        return self.state, self.covariance
+        return x, P # self.state, self.covariance
 
 class DistributedSensorNode(ProcessingNodeSensor):
     def __init__(self, sensor):
