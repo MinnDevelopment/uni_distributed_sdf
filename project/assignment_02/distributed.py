@@ -13,7 +13,8 @@ class DistributedKalmanFilter(RelaxedEvolutionKalmanFilter):
     def __init__(self, model, sensor_models: List[SensorModel]):
         super().__init__(model, len(sensor_models))
         self.Rs = [m.R for m in sensor_models] # Assuming H is the same everywhere for simplicity
-        self.previous_covariances = [np.trace(R) * np.eye(4) for R in self.Rs]
+        self.previous_covariances = [R.trace() * np.eye(4) for R in self.Rs]
+        self.globalization(0) # This is technically not needed but 0|0 is a posterior we can use in prediction for k=1
 
     def compute_covariance(self, delta, P, R):
         F = self.F(delta)
@@ -49,7 +50,6 @@ class DistributedSensorNode(ProcessingNodeSensor):
         super().__init__(sensor)
 
     def init(self, nodes):
-        self.nodes = nodes
         self.filter = DistributedKalmanFilter(self.model, [n.model for n in nodes])
 
 class DistributedFusion(NaiveFusion):

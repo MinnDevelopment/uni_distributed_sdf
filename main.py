@@ -63,7 +63,8 @@ T = 495 # Number of steps
 stepsize = 1
 sigma = [50, 100, 200, 500] # Sensor covariance factor
 S = len(sigma) # Number of sensors
-track, velocity = sine()
+track, velocity = cross_loop()
+# track, velocity = sine()
 
 random_seed = (T << 16) + (stepsize << 8) + S + int(np.mean(sigma))
 
