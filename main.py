@@ -62,9 +62,10 @@ methods = {
 T = 495 # Number of steps
 stepsize = 10
 sigma = [500, 700, 100, 300] # Sensor covariance factor
-S = len(sigma) # Number of sensors
 track, velocity = cross_loop()
 # track, velocity = sine()
+
+S = len(sigma) # Number of sensors
 
 random_seed = (T << 16) + (stepsize << 8) + S + int(np.mean(sigma))
 
@@ -118,7 +119,7 @@ def simulate(method):
         predicted.append(x.flatten())
         std.append(np.sqrt(np.trace(inv(P))))
 
-        # Do a prediction
+        # Do a prediction for the interpolation between measurements
         for i in range(1, stepsize):
             x, P = fusion.predict(t+i)
             gt = track(t+i)
@@ -177,14 +178,11 @@ plt.close()
 # Joint plot for all methods
 
 plt.figure(figsize=(16, 4))
-width = 0.75 * len(rmse.items()) + 0.75
 baseline = np.array(rmse['central'])
 for method, error in rmse.items():
     if method == 'central':
         continue
-    # plt.plot(range(len(error)), np.array(error) - baseline, linewidth=width, label=method)
     plt.plot(range(len(error)), error, linewidth=1, label=method)
-    width -= 0.75
 error = rmse['central']
 plt.scatter(range(len(error)), error, c='k', marker='+', label='central')
 plt.title('Root Mean Squared Error')
@@ -193,14 +191,11 @@ plt.savefig(f'rmse.png')
 plt.close()
 
 plt.figure(figsize=(16, 4))
-width = 0.75 * len(nees.items()) + 0.75
 baseline = np.array(nees['central'])
 for method, error in nees.items():
     if method == 'central':
         continue
-    # plt.plot(range(len(error)), np.array(error) - baseline, linewidth=width, label=method)
     plt.plot(range(len(error)), error, linewidth=1, label=method)
-    width -= 0.75
 error = nees['central']
 plt.scatter(range(len(error)), error, c='k', marker='+', label='central')
 plt.title('Normalized Estimation Error Squared')
@@ -209,14 +204,11 @@ plt.savefig(f'nees.png')
 plt.close()
 
 plt.figure(figsize=(16, 4))
-width = 0.75 * len(stds.items()) + 0.75
 baseline = np.array(stds['central'])
 for method, std in stds.items():
     if method == 'central':
         continue
-    # plt.plot(range(len(std)), np.array(std) - baseline, linewidth=width, label=method)
     plt.plot(range(len(std)), std, linewidth=1, label=method)
-    width -= 0.75
 std = stds['central']
 plt.scatter(range(len(std)), std, c='k', marker='+', label='central')
 plt.title('Standard Deviation')
